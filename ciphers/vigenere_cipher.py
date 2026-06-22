@@ -33,6 +33,20 @@ def decrypt_message(key: str, message: str) -> str:
     return translate_message(key, message, "decrypt")
 
 
+def encrypt_text(text: str, key: str) -> str:
+    """
+    Unified encrypt interface for CLI: (text, key) -> ciphertext
+    """
+    return encrypt_message(key, text)
+
+
+def decrypt_text(ciphertext: str, key: str) -> str:
+    """
+    Unified decrypt interface for CLI: (ciphertext, key) -> plaintext
+    """
+    return decrypt_message(key, ciphertext)
+
+
 def translate_message(key: str, message: str, mode: str) -> str:
     translated = []
     key_index = 0

@@ -160,6 +160,20 @@ def decrypt(input_string: str, key: int, alphabet: str | None = None) -> str:
     return encrypt(input_string, key, alphabet)
 
 
+def encrypt_text(text: str, key: int, alphabet: str | None = None) -> str:
+    """
+    Unified encrypt interface for CLI: (text, key) -> ciphertext
+    """
+    return encrypt(text, key, alphabet)
+
+
+def decrypt_text(ciphertext: str, key: int, alphabet: str | None = None) -> str:
+    """
+    Unified decrypt interface for CLI: (ciphertext, key) -> plaintext
+    """
+    return decrypt(ciphertext, key, alphabet)
+
+
 def brute_force(input_string: str, alphabet: str | None = None) -> dict[int, str]:
     """
     brute_force

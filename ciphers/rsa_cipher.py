@@ -60,6 +60,56 @@ def decrypt_message(
     return get_text_from_blocks(decrypted_blocks, message_length, block_size)
 
 
+def _parse_rsa_key(key_str: str) -> tuple[int, int]:
+    """
+    Parse RSA key from string format "n,e" or "n,d" to tuple (n, e/d)
+    """
+    parts = key_str.split(",")
+    if len(parts) != 2:
+        raise ValueError("RSA key must be in format 'n,e' or 'n,d'")
+    return (int(parts[0]), int(parts[1]))
+
+
+def _auto_block_size(n: int) -> int:
+    """
+    Compute safe block size based on key modulus n.
+    block_size must satisfy 256^block_size <= n for RSA to work correctly.
+    """
+    return max(1, n.bit_length() // 8)
+
+
+def encrypt_text(text: str, key: str) -> str:
+    """
+    Unified encrypt interface for CLI: (text, key) -> ciphertext
+    key: string in format "n,e" (public key)
+    Returns: string with format "message_length_blocksize_blocks"
+    """
+    rsa_key = _parse_rsa_key(key)
+    n, _ = rsa_key
+    block_size = _auto_block_size(n)
+    encrypted_blocks = encrypt_message(text, rsa_key, block_size)
+    encrypted_str = ",".join(str(b) for b in encrypted_blocks)
+    return f"{len(text)}_{block_size}_{encrypted_str}"
+
+
+def decrypt_text(ciphertext: str, key: str) -> str:
+    """
+    Unified decrypt interface for CLI: (ciphertext, key) -> plaintext
+    ciphertext: string with format "message_length_blocksize_blocks"
+    key: string in format "n,d" (private key)
+    """
+    rsa_key = _parse_rsa_key(key)
+    parts = ciphertext.split("_", 2)
+    if len(parts) != 3:
+        raise ValueError(
+            "Invalid RSA ciphertext format, expected 'length_blocksize_blocks'"
+        )
+    message_length = int(parts[0])
+    block_size = int(parts[1])
+    encrypted_blocks = [int(b) for b in parts[2].split(",")]
+    return decrypt_message(encrypted_blocks, message_length, rsa_key, block_size)
+
+
 def read_key_file(key_filename: str) -> tuple[int, int, int]:
     with open(key_filename) as fo:
         content = fo.read()
